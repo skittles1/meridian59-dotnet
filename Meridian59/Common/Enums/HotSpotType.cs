@@ -29,5 +29,6 @@ namespace Meridian59.Common.Enums
         HOTSPOT_OVEROVER = 4,   // Overlay on an overlay
         HOTSPOT_UNDERUNDER = 5, // Underlay on an underlay
         HOTSPOT_UNDEROVER = 6,  // Over on an underlay
+        HOTSPOT_OVERUNDEROVERUNDER = 7, // Overlay displayed under underlays of overlays
     }
 }

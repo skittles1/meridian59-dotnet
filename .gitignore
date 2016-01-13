@@ -2,6 +2,8 @@
 *.suo
 *.pdb
 *.opensdf
+*.log
+*.ipch
 /Meridian59/obj
 /Meridian59/bin
 /Meridian59.Android.ChatClient/bin

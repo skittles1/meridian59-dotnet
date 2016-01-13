@@ -239,11 +239,18 @@ namespace Meridian59.Drawing2D
         /// <param name="IsUnderlays"></param>
         protected void DrawSubOverlays(bool IsUnderlays)
         {
+            // the kind of hotspot to process this time
+            if (!IsUnderlays)
+            {
+                // Process HOTSPOT_OVERUNDEROVERUNDER first, goes on top of main overlay but under overunderlays
+                foreach (SubOverlay.RenderInfo subInfo in RenderInfo.SubBgf)
+                    if (subInfo.HotspotType == HotSpotType.HOTSPOT_OVERUNDEROVERUNDER)
+                        DrawSubOverlay(subInfo);
+            }
             // There are 3 passes to draw all overlays (and nother 3 to draw all underlays).
             // Each pass will process a special variant of hotspots
             for (int pass = 0; pass < 3; pass++)
             {
-                // the kind of hotspot to process this time
                 HotSpotType hstToProcess = HotSpotType.HOTSPOT_NONE;
                 switch (pass)
                 {

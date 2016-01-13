@@ -38,7 +38,7 @@ namespace Meridian59 { namespace Ogre
 		// image composer for head picture
 		imageComposerHead = gcnew ImageComposerCEGUI<RoomObject^>();
 		imageComposerHead->ApplyYOffset = false;
-		imageComposerHead->HotspotIndex = (unsigned char)KnownHotspot::HEAD;
+      imageComposerHead->HotspotIndex = (unsigned char)0;// KnownHotspot::HEAD;
         imageComposerHead->IsScalePow2 = false;
         imageComposerHead->UseViewerFrame = false;
 		imageComposerHead->Width = (unsigned int)Head->getPixelSize().d_width;

@@ -268,6 +268,8 @@ namespace Meridian59.Drawing2D
                             // determine type of hotspot
                             if (subOvHotspot.Index < 0)
                                 subOvInfo.HotspotType = HotSpotType.HOTSPOT_UNDER;
+                            else if (subOvHotspot.Index == 2)
+                                subOvInfo.HotspotType = HotSpotType.HOTSPOT_OVERUNDEROVERUNDER;
                             else
                                 subOvInfo.HotspotType = HotSpotType.HOTSPOT_OVER;
                         }
