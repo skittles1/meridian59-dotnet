@@ -247,7 +247,8 @@ namespace Meridian59 { namespace Ogre
          return;
    }
 
-   bool ImageBuilder::DirectDraw::DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, RECT* DestRect, unsigned char Palette)
+   bool ImageBuilder::DirectDraw::DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, RECT* DestRect,
+      unsigned char Palette, ObjectFlags^ Flags)
    {
       RECT src;
       HRESULT hr;
@@ -444,7 +445,8 @@ namespace Meridian59 { namespace Ogre
       graphics->DrawImage(background, toRectangle, fromRectangle, GraphicsUnit::Pixel);
    }
 
-   bool ImageBuilder::GDI::DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, ::System::Drawing::Rectangle DestRect, unsigned char Palette)
+   bool ImageBuilder::GDI::DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, ::System::Drawing::Rectangle DestRect,
+      unsigned char Palette, ObjectFlags^ Flags)
    {
       // lock
       ::System::Drawing::Imaging::BitmapData^ data = source->LockBits(
@@ -796,7 +798,8 @@ namespace Meridian59 { namespace Ogre
    {
    }
 
-   bool ImageBuilder::DirectX::DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, RECT* DestRect, unsigned char Palette)
+   bool ImageBuilder::DirectX::DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, RECT* DestRect,
+      unsigned char Palette, ObjectFlags^ Flags)
    {
       if (BgfBitmap->Width == 0 || BgfBitmap->Height == 0)
          return false;
@@ -949,7 +952,9 @@ namespace Meridian59 { namespace Ogre
          texBuffer, width, height, 0, 0, Width, Height, 0);
    }
 
-   bool ImageBuilder::Native::DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, unsigned int OverlayX, unsigned int OverlayY, unsigned int OverlayWidth, unsigned int OverlayHeight, unsigned char Palette)
+   bool ImageBuilder::Native::DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, unsigned int OverlayX,
+      unsigned int OverlayY, unsigned int OverlayWidth, unsigned int OverlayHeight, unsigned char Palette,
+      ObjectFlags^ Flags)
    {
       // fill with new data
       BgfBitmap->FillPixelDataAsA8R8G8B8TransparencyBlackScaled(

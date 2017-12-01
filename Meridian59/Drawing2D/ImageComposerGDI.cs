@@ -146,6 +146,10 @@ namespace Meridian59.Drawing2D
 
             else if (dataSource.Flags.Drawing == ObjectFlags.DrawingType.Black)
                 DrawPostEffectBlack(Image);
+
+            else if (dataSource.Flags.Drawing == ObjectFlags.DrawingType.SecondTrans
+                || dataSource.Flags.Drawing == ObjectFlags.DrawingType.DitherGrey)
+                DrawPostEffectSecondTrans(Image);
         }
 
         protected override void FinishDraw()
@@ -271,6 +275,62 @@ namespace Meridian59.Drawing2D
                 if (((ptr[i] & 0xFF000000) == 0xFF000000))  // nontransparent pixels only            
                     ptr[i] = 0xFF000000;                    // to black
 
+            // unlock
+            Bitmap.UnlockBits(bmpData);
+        }
+
+        /// <summary>
+        /// Makes any non transparent pixel white
+        /// </summary>
+        /// <param name="Bitmap"></param>
+        public static unsafe void DrawPostEffectSecondTrans(Bitmap Bitmap)
+        {
+            // overall sum of pixels
+            int pixelcount = Bitmap.Width * Bitmap.Height;
+
+            // Palette
+            uint[] colPalette = ColorTransformation.Palettes[ColorTransformation.FILTERWHITE90];
+            // parts to lock
+            Rectangle lockRect = new Rectangle(0, 0, Bitmap.Width, Bitmap.Height);
+
+            // lock the bitmap
+            BitmapData bmpData = Bitmap.LockBits(
+                lockRect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+
+            // get pointer
+            uint* ptr = (uint*)bmpData.Scan0;
+
+            // walk pixels
+            for (int i = 0; i < pixelcount; i++)
+            {
+                if (((ptr[i] & 0xFF000000) == 0xFF000000))
+                {
+                    // get r, g, b components of current color
+                    byte r = (byte)((ptr[i] & 0x00FF0000) >> 16);
+                    byte g = (byte)((ptr[i] & 0x0000FF00) >> 8);
+                    byte b = (byte)(ptr[i] & 0x000000FF);
+
+                    // calc ligtness by rgb
+                    byte byLightness = (byte)(Math.Max(Math.Max(r, g), b) & 0xFF);
+
+                    // get components of filter color                
+                    byte peRed = (byte)((0xFFF0F0F0 & 0x00FF0000) >> 16);
+                    byte peGreen = (byte)((0xFFF0F0F0 & 0x0000FF00) >> 8);
+                    byte peBlue = (byte)(0xFFF0F0F0 & 0x000000FF);
+
+                    int l = ((int)peRed) * ((int)byLightness) / 256;
+                    peRed = (byte)(l & 0xFF);
+
+                    l = ((int)peGreen) * ((int)byLightness) / 256;
+                    peGreen = (byte)(l & 0xFF);
+
+                    l = ((int)peBlue) * ((int)byLightness) / 256;
+                    peBlue = (byte)(l & 0xFF);
+
+                    // compose A|R|G|B value
+                    ptr[i] = 0xFF000000 | ((uint)peRed << 16) | ((uint)peGreen << 8) | (uint)peBlue;
+                }
+            }
             // unlock
             Bitmap.UnlockBits(bmpData);
         }

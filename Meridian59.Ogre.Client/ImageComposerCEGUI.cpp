@@ -51,25 +51,35 @@ namespace Meridian59 { namespace Ogre
    generic <typename T>
    void ImageComposerCEGUI<T>::DrawMainOverlay() 
    {
+      unsigned char palette = RenderInfo->BgfColor;
+      if (RenderInfo->Flags->Drawing == ObjectFlags::DrawingType::SecondTrans)
+         palette = ColorTransformation::FILTERWHITE90;
+
       ImageBuilder::DrawBGF(
          RenderInfo->Bgf, 
          System::Convert::ToInt32(RenderInfo->Origin.X),
          System::Convert::ToInt32(RenderInfo->Origin.Y),
          System::Convert::ToInt32(RenderInfo->Size.X),
          System::Convert::ToInt32(RenderInfo->Size.Y),
-         RenderInfo->BgfColor);
+         palette,
+         RenderInfo->Flags);
    };
 
    generic <typename T>
    void ImageComposerCEGUI<T>::DrawSubOverlay(SubOverlay::RenderInfo^ RenderInfo) 
    {
+      unsigned char palette = RenderInfo->SubOverlay->ColorTranslation;
+      if (RenderInfo->Flags->Drawing == ObjectFlags::DrawingType::SecondTrans)
+         palette = ColorTransformation::FILTERWHITE90;
+
       ImageBuilder::DrawBGF(
          RenderInfo->Bgf, 
          System::Convert::ToInt32(RenderInfo->Origin.X),
          System::Convert::ToInt32(RenderInfo->Origin.Y),
          System::Convert::ToInt32(RenderInfo->Size.X),
          System::Convert::ToInt32(RenderInfo->Size.Y),
-         RenderInfo->SubOverlay->ColorTranslation);
+         palette,
+         RenderInfo->Flags);
    };
 
    generic <typename T>

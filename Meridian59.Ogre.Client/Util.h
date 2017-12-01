@@ -744,6 +744,66 @@ namespace Meridian59 { namespace Ogre
          baseMaterial.setNull();
          matPtr.setNull();
       };
+
+      /// <summary>
+      /// Clones the base greyscale material to a new material and applies a texture.
+      /// Only if there is no material with that name yet.
+      /// </summary>
+      /// <param name="MaterialName">Name of new material</param>
+      /// <param name="TextureName">Name of texture to set on new material</param>
+      /// <param name="MaterialGroup">ResourceGroup of new material</param>
+      /// <param name="ScrollSpeed">NULL (default) or texture scrolling speed</param>
+      __forceinline static void CreateMaterialGreyscale(
+         const ::Ogre::String& MaterialName,
+         const ::Ogre::String& TextureName,
+         const ::Ogre::String& MaterialGroup,
+         const ::Ogre::Vector2* ScrollSpeed,
+         const ::Ogre::Vector4* ColorModifier,
+         const bool IsRoomMaterial)
+      {
+         MaterialManager& matMan = MaterialManager::getSingleton();
+
+         // nothing to do if existant
+         if (matMan.resourceExists(MaterialName))
+            return;
+
+         // try to get existing base material
+         MaterialPtr baseMaterial = matMan.getByName(BASEMATERIALGREYSCALE, RESOURCEGROUPSHADER);
+
+         if (baseMaterial.isNull())
+            return;
+
+         // clone base material to different group
+         MaterialPtr matPtr = baseMaterial->clone(MaterialName, true, MaterialGroup);
+
+         // set the texture_unit part with name of the texture
+         AliasTextureNamePairList pairs = AliasTextureNamePairList();
+         pairs[TEXTUREUNITALIAS] = TextureName;
+
+         // apply texture name
+         matPtr->applyTextureAliases(pairs);
+
+         // get shader passes (0 = ambient, 1 = diffuse pointlights)
+         Pass* ambientPass = matPtr->getTechnique(0)->getPass(0);
+
+         // get fragment shader parameters from ambient pass
+         const GpuProgramParametersSharedPtr paramsAmbient =
+            ambientPass->getFragmentProgramParameters();
+
+         // apply a custom color modifier on the shaders
+         // its components get multiplied with the color components
+         if (ColorModifier != nullptr)
+            paramsAmbient->setNamedConstant(SHADERCOLORMODIFIER, *ColorModifier);
+
+         // apply a scrolling if set
+         if (ScrollSpeed != nullptr)
+            ambientPass->getTextureUnitState(0)->setScrollAnimation(ScrollSpeed->x, ScrollSpeed->y);
+
+         // cleanup
+         baseMaterial.setNull();
+         matPtr.setNull();
+      };
+
       #pragma endregion
 
       #pragma region Others	

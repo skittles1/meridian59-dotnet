@@ -23,6 +23,7 @@
 #define BASEMATERIALROOM         "base_material_room"
 #define BASEMATERIALINVISIBLE    "base_material_invisible"
 #define BASEMATERIALWATER        "base_material_water"
+#define BASEMATERIALGREYSCALE    "base_material_greyscale"
 #define TRANSPARENTMATERIAL      "transparent"
 #define TEXTUREUNITALIAS         "diffuseMap"
 #define SHADERCOLORMODIFIER      "colormodifier"

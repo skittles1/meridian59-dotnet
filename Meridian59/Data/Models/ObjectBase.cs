@@ -124,9 +124,6 @@ namespace Meridian59.Data.Models
                 cursor++;
             }
 
-            if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
-                colorTranslation = ColorTransformation.FILTERWHITE90;
-
             animation = Animation.ExtractAnimation(Buffer, cursor);
             animation.PropertyChanged += OnAnimationPropertyChanged;
             cursor += animation.ByteLength;
@@ -224,9 +221,6 @@ namespace Meridian59.Data.Models
                 effect = Buffer[0];
                 Buffer++;
             }
-
-            if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
-                colorTranslation = ColorTransformation.FILTERWHITE90;
 
             animation = Animation.ExtractAnimation(ref Buffer);
             animation.PropertyChanged += OnAnimationPropertyChanged;
@@ -403,7 +397,12 @@ namespace Meridian59.Data.Models
         /// </summary>
         public byte ColorTranslation
         {
-            get { return colorTranslation; }
+            get
+            {
+                if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
+                    return ColorTransformation.FILTERWHITE90;
+                return colorTranslation;
+            }
             set
             {
                 if (colorTranslation != value)
@@ -880,6 +879,18 @@ namespace Meridian59.Data.Models
             // Don't need to update base - ID doesn't change and
             // ObjectFlagsUpdate doesn't contain Count data.
             Flags.UpdateFromModel(Model.Flags, RaiseChangedEvent);
+
+            // Must update SubOverlay ColorTranslation.
+            if (Flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
+            {
+                foreach (SubOverlay subOv in subOverlays)
+                    subOv.ColorTranslation = ColorTransformation.FILTERWHITE90;
+            }
+            else
+            {
+
+            }
+
         }
         #endregion
 

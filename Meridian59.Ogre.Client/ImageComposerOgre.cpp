@@ -16,6 +16,7 @@ namespace Meridian59 { namespace Ogre
       matMan.remove(*MaterialNameTranslucent50);
       matMan.remove(*MaterialNameTranslucent75);
       matMan.remove(*MaterialNameInvisible);
+      matMan.remove(*MaterialNameSecondTrans);
 
       // delete material strings
       delete MaterialNameDefault;
@@ -26,6 +27,7 @@ namespace Meridian59 { namespace Ogre
       delete MaterialNameTranslucent50;
       delete MaterialNameTranslucent75;
       delete MaterialNameInvisible;
+      delete MaterialNameSecondTrans;
 
       // remove texture
       texMan.remove(*TextureName);
@@ -59,6 +61,7 @@ namespace Meridian59 { namespace Ogre
       image->MaterialNameTranslucent50 = StringConvert::CLRToOgrePtr(PREFIX_REMOTENODE2D_MATERIAL + key + "/translucent50");
       image->MaterialNameTranslucent75 = StringConvert::CLRToOgrePtr(PREFIX_REMOTENODE2D_MATERIAL + key + "/translucent75");
       image->MaterialNameInvisible     = StringConvert::CLRToOgrePtr(PREFIX_REMOTENODE2D_MATERIAL + key + "/invisible");
+      image->MaterialNameSecondTrans   = StringConvert::CLRToOgrePtr(PREFIX_REMOTENODE2D_MATERIAL + key + "/secondtrans");
       image->MaterialNameMouseOver     = StringConvert::CLRToOgrePtr(PREFIX_REMOTENODE2D_MATERIAL + key + "/mouseover");
       image->TextureName               = StringConvert::CLRToOgrePtr(PREFIX_REMOTENODE2D_TEXTURE + key);
 
@@ -116,6 +119,12 @@ namespace Meridian59 { namespace Ogre
       Util::CreateMaterialInvisible(
          *image->MaterialNameInvisible, *image->TextureName,
          MATERIALGROUP_REMOTENODE2D);
+
+      // create secondtrans material (90% filterwhite)
+      Util::CreateMaterialGreyscale(
+         *image->MaterialNameSecondTrans, *image->TextureName,
+         MATERIALGROUP_REMOTENODE2D,
+         nullptr, &::Ogre::Vector4(1.0f, 1.0f, 1.0f, 1.0f), false);
    };
 
    generic <typename T>
@@ -132,7 +141,8 @@ namespace Meridian59 { namespace Ogre
          System::Convert::ToInt32(RenderInfo->Origin.Y),
          System::Convert::ToInt32(RenderInfo->Size.X),
          System::Convert::ToInt32(RenderInfo->Size.Y),
-         RenderInfo->BgfColor);
+         RenderInfo->BgfColor,
+         RenderInfo->Flags);
    };
 
    generic <typename T>
@@ -144,7 +154,8 @@ namespace Meridian59 { namespace Ogre
          System::Convert::ToInt32(RenderInfo->Origin.Y),
          System::Convert::ToInt32(RenderInfo->Size.X),
          System::Convert::ToInt32(RenderInfo->Size.Y),
-         RenderInfo->SubOverlay->ColorTranslation);
+         RenderInfo->SubOverlay->ColorTranslation,
+         RenderInfo->Flags);
    };
 
    generic <typename T>

@@ -89,6 +89,7 @@ namespace Meridian59.Data.Models
         private const uint DRAWFX_DITHERTRANS   = 0x00000008;    // Dither (with two translates) 50% of pixels
         private const uint DRAWFX_DOUBLETRANS   = 0x00000009;    // Translate twice each pixel, plus lighting
         private const uint DRAWFX_SECONDTRANS   = 0x0000000A;    // Ignore per-overlay xlat and use only secondary xlat
+        private const uint DRAWFX_DITHERGREY    = 0x0000000B;    // Haze (dither with transparency) 50% of pixels, greyscale other 50%
 
         // DEDICATED UINT - MINIMAP BOOLS
         private const uint MM_NONE          = 0x00000000; // No dot (default for all objects)
@@ -153,7 +154,8 @@ namespace Meridian59.Data.Models
             DitherInvis     = DRAWFX_DITHERINVIS,
             DitherTrans     = DRAWFX_DITHERTRANS,
             DoubleTrans     = DRAWFX_DOUBLETRANS,
-            SecondTrans     = DRAWFX_SECONDTRANS
+            SecondTrans     = DRAWFX_SECONDTRANS,
+            DitherGrey      = DRAWFX_DITHERGREY
         }
         #endregion
 

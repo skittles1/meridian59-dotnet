@@ -38,6 +38,7 @@ namespace Meridian59 { namespace Ogre
       ::Ogre::String* MaterialNameTranslucent50;
       ::Ogre::String* MaterialNameTranslucent75;
       ::Ogre::String* MaterialNameInvisible;
+      ::Ogre::String* MaterialNameSecondTrans;
       ::Ogre::String* TextureName;
 
       void Delete();

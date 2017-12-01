@@ -170,6 +170,10 @@ namespace Meridian59 { namespace Ogre
       else if (RoomObject->Flags->Drawing == ObjectFlags::DrawingType::Black)
          billboardSet->setMaterialName(*imageComposer->Image->MaterialNameBlack);
 
+      // SECONDTRANS (e.g. statues)
+      else if (RoomObject->Flags->Drawing == ObjectFlags::DrawingType::DitherGrey)
+         billboardSet->setMaterialName(*imageComposer->Image->MaterialNameSecondTrans);
+
       // TARGET
       else if (RoomObject->IsTarget)
          billboardSet->setMaterialName(*imageComposer->Image->MaterialNameTarget);

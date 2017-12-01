@@ -118,9 +118,6 @@ namespace Meridian59.Data.Models
                 cursor++;
             }
 
-            if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
-                motionColorTranslation = ColorTransformation.FILTERWHITE90;
-
             motionAnimation = Animation.ExtractAnimation(Buffer, cursor);   // Animation (n bytes)
             cursor += motionAnimation.ByteLength;
 
@@ -219,9 +216,6 @@ namespace Meridian59.Data.Models
                 motionEffect = Buffer[0];
                 Buffer++;
             }
-
-            if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
-                motionColorTranslation = ColorTransformation.FILTERWHITE90;
 
             motionAnimation = Animation.ExtractAnimation(ref Buffer);
             motionAnimation.PropertyChanged += OnMotionAnimationPropertyChanged;
@@ -428,7 +422,12 @@ namespace Meridian59.Data.Models
         /// </summary>
         public byte MotionColorTranslation
         {
-            get { return motionColorTranslation; }
+            get
+            {
+                if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
+                    return ColorTransformation.FILTERWHITE90;
+                return motionColorTranslation;
+            }
             set
             {
                 if (motionColorTranslation != value)
@@ -840,7 +839,7 @@ namespace Meridian59.Data.Models
         #endregion
 
         #region IStringResolvable
-		public override void ResolveStrings(StringDictionary StringResources, bool RaiseChangedEvent)
+        public override void ResolveStrings(StringDictionary StringResources, bool RaiseChangedEvent)
         {
             base.ResolveStrings(StringResources, RaiseChangedEvent);
 

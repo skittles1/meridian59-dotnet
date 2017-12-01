@@ -77,7 +77,8 @@ namespace Meridian59 { namespace Ogre
          static void PrepareDraw(::Ogre::String& TextureName, int Width, int Height, bool AddToCEGUI);
          static void FinishDraw();
          static void DrawBackground(int Width, int Height);
-         static bool DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, ::System::Drawing::Rectangle DestRect, unsigned char Palette);
+         static bool DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, ::System::Drawing::Rectangle DestRect,
+            unsigned char Palette, ObjectFlags^ Flags);
       };
 
       /// <summary>
@@ -102,7 +103,8 @@ namespace Meridian59 { namespace Ogre
          static void PrepareDraw(::Ogre::String& TextureName, int Width, int Height, bool AddToCEGUI);
          static void FinishDraw();
          static void DrawBackground(int Width, int Height);
-         static bool DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, RECT* DestRect, unsigned char Palette);
+         static bool DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, RECT* DestRect,
+            unsigned char Palette, ObjectFlags^ Flags);
          static CLRString^ GetError(HRESULT hr);
       };
 
@@ -131,7 +133,8 @@ namespace Meridian59 { namespace Ogre
          static void PrepareDraw(::Ogre::String& TextureName, int Width, int Height, bool AddToCEGUI);
          static void FinishDraw();
          static void DrawBackground(int Width, int Height);
-         static bool DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, RECT* DestRect, unsigned char Palette);
+         static bool DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, RECT* DestRect,
+            unsigned char Palette, ObjectFlags^ Flags);
          static CLRString^ GetError(HRESULT hr);
       };
 
@@ -155,7 +158,8 @@ namespace Meridian59 { namespace Ogre
          static void PrepareDraw(::Ogre::String& TextureName, int Width, int Height, bool AddToCEGUI);
          static void FinishDraw();
          static void DrawBackground(int Width, int Height);
-         static bool DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, unsigned int OverlayX, unsigned int OverlayY, unsigned int OverlayWidth, unsigned int OverlayHeight, unsigned char Palette);
+         static bool DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, unsigned int OverlayX, unsigned int OverlayY,
+            unsigned int OverlayWidth, unsigned int OverlayHeight, unsigned char Palette, ObjectFlags^ Flags);
       };
 
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,14 +244,15 @@ namespace Meridian59 { namespace Ogre
             Native::DrawBackground(Width, Height);
       };
 
-      __forceinline static bool DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, int DestX, int DestY, int DestWidth, int DestHeight, char Palette)
+      __forceinline static bool DrawBGF(::Meridian59::Files::BGF::BgfBitmap^ BgfBitmap, int DestX, int DestY,
+         int DestWidth, int DestHeight, char Palette, ObjectFlags^ Flags)
       {
          if (builderType == ImageBuilderType::GDI)
          {
             System::Drawing::Rectangle rect = System::Drawing::Rectangle(
                DestX, DestY, DestWidth, DestHeight);
 
-            return GDI::DrawBGF(BgfBitmap, rect, Palette);
+            return GDI::DrawBGF(BgfBitmap, rect, Palette, Flags);
          }
          else if (builderType == ImageBuilderType::DirectDraw)
          {
@@ -257,7 +262,7 @@ namespace Meridian59 { namespace Ogre
             rect.right = rect.left + DestWidth;
             rect.bottom = rect.top + DestHeight;
 
-            return DirectDraw::DrawBGF(BgfBitmap, &rect, Palette);
+            return DirectDraw::DrawBGF(BgfBitmap, &rect, Palette, Flags);
          }
          else if (builderType == ImageBuilderType::DirectX)
          {
@@ -267,11 +272,11 @@ namespace Meridian59 { namespace Ogre
             rect.right = rect.left + DestWidth;
             rect.bottom = rect.top + DestHeight;
 
-            return DirectX::DrawBGF(BgfBitmap, &rect, Palette);
+            return DirectX::DrawBGF(BgfBitmap, &rect, Palette, Flags);
          }
          else if (builderType == ImageBuilderType::Native)
          {
-            return Native::DrawBGF(BgfBitmap, DestX, DestY, DestWidth, DestHeight, Palette);
+            return Native::DrawBGF(BgfBitmap, DestX, DestY, DestWidth, DestHeight, Palette, Flags);
          }
          return false;
       };

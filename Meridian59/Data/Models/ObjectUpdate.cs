@@ -122,10 +122,7 @@ namespace Meridian59.Data.Models
 
                 effect = Buffer[cursor];                                  // Effect (1 byte)
                 cursor++;
-            }
-
-            if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
-                colorTranslation = ColorTransformation.FILTERWHITE90;   
+            } 
 
             animation = Animation.ExtractAnimation(Buffer, cursor);       // Animation (n bytes)
             cursor += animation.ByteLength;
@@ -162,9 +159,6 @@ namespace Meridian59.Data.Models
                 motionEffect = Buffer[cursor];                              // Effect (1 byte)
                 cursor++;
             }
-
-            if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
-                motionColorTranslation = ColorTransformation.FILTERWHITE90; 
 
             motionAnimation = Animation.ExtractAnimation(Buffer, cursor);   // Animation (n bytes)
             cursor += motionAnimation.ByteLength;
@@ -278,9 +272,6 @@ namespace Meridian59.Data.Models
 
                 colorTranslation = Buffer[0];
                 Buffer++;
-
-                if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
-                    colorTranslation = ColorTransformation.FILTERWHITE90;
             }
             else if ((AnimationType)Buffer[0] == AnimationType.EFFECT)
             {
@@ -314,9 +305,6 @@ namespace Meridian59.Data.Models
 
                 motionColorTranslation = Buffer[0];
                 Buffer++;
-
-                if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
-                    motionColorTranslation = ColorTransformation.FILTERWHITE90;
             }
             else if ((AnimationType)Buffer[0] == AnimationType.EFFECT)
             {
@@ -479,7 +467,12 @@ namespace Meridian59.Data.Models
         }
         public byte ColorTranslation
         {
-            get { return colorTranslation; }
+            get
+            {
+                if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
+                    return ColorTransformation.FILTERWHITE90;
+                return colorTranslation;
+            }
             set
             {
                 if (colorTranslation != value)
@@ -531,7 +524,12 @@ namespace Meridian59.Data.Models
         }
         public byte MotionColorTranslation
         {
-            get { return motionColorTranslation; }
+            get
+            {
+                if (flags.Drawing == ObjectFlags.DrawingType.SecondTrans)
+                    return ColorTransformation.FILTERWHITE90;
+                return motionColorTranslation;
+            }
             set
             {
                 if (motionColorTranslation != value)

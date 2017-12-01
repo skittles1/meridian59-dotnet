@@ -220,6 +220,50 @@ void invisible_ps(
 }
 
 /********************************/
+/*       GREYSCALE SHADERS      */
+/********************************/
+
+// pixel
+void greyscale_ps(
+   out     float4    pixel          : COLOR0,
+   in      float2    uv             : TEXCOORD0,
+   in      float4    wp             : TEXCOORD1,
+   in      float3    normal         : NORMAL,
+   uniform float3    ambient,
+   uniform float3    lightCol[8],
+   uniform float4    lightPos[8],
+   uniform float4    lightAtt[8],
+   uniform float4    colormodifier,
+   uniform sampler2D diffusetex     : TEXUNIT0)
+{
+   // pixel from texture
+   const float4 texcol = tex2D(diffusetex, uv);
+
+   // flip direction (ogre? also normaalize in ogre)
+   //lightPos = -lightPos;
+
+   // represents how much this pixel should be affected by directional light
+   float angle = max(dot(lightPos[0].xyz, normal), 0);
+
+   // combine ambient and directional light with weights
+   float3 light = (0.5 * angle * lightCol[0]) + (0.5 * ambient);
+
+   [unroll(8)]
+   for(uint i = 1; i < 8; i++)
+   {
+      float3 delta = lightPos[i] - wp;
+      float lightScale = max(0.0, 1.0 - (dot(delta, delta) / (lightAtt[i].r * lightAtt[i].r)));
+      light += lightCol[i] * lightScale;
+   }
+
+   float4 truepixel = float4(light * colormodifier.rgb * texcol.rgb, texcol.a * colormodifier.a);
+   float greyscaleaverage = (truepixel.r + truepixel.g + truepixel.b) / 3.0;
+
+   // output pixel
+   pixel = float4(greyscaleaverage, greyscaleaverage, greyscaleaverage, truepixel.a);
+}
+
+/********************************/
 /*         WATER SHADERS        */
 /********************************/
 

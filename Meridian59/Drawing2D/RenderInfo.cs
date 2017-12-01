@@ -109,6 +109,11 @@ namespace Meridian59.Drawing2D
         public byte BgfColor { get; protected set; }
 
         /// <summary>
+        /// Object flags (including DrawingType) for main image,
+        /// </summary>
+        public ObjectFlags Flags { get; protected set; }
+
+        /// <summary>
         /// Suboverlays
         /// </summary>
         public List<SubOverlay.RenderInfo> SubBgf { get; protected set; }
@@ -273,6 +278,7 @@ namespace Meridian59.Drawing2D
             BgfBitmap mainFrame = MainFrame;
             BgfFile mainResource = Data.Resource;
             byte mainColor = Data.ColorTranslation;
+            Flags = Data.Flags;
             BgfBitmap subOvFrame;
             BgfBitmapHotspot subOvHotspot;
             SubOverlay subOvParent;
@@ -346,7 +352,7 @@ namespace Meridian59.Drawing2D
                         // save subov & bitmap
                         subOvInfo.SubOverlay = subOv;
                         subOvInfo.Bgf = subOvFrame;
-
+                        subOvInfo.Flags = Data.Flags;
                         // calculate the size of this suboverlay
                         subOvInfo.Size.X = (Real)subOvFrame.Width / (Real)subOv.Resource.ShrinkFactor;
                         subOvInfo.Size.Y = (Real)subOvFrame.Height / (Real)subOv.Resource.ShrinkFactor;

@@ -129,6 +129,23 @@ fragment_program ambient_ps hlsl
     }
 }
 
+fragment_program greyscale_ps hlsl
+{
+    source general.hlsl
+    target ps_3_0
+    entry_point greyscale_ps
+    optimisation_level 3
+	 
+    default_params
+    {
+        param_named_auto ambient ambient_light_colour
+        param_named_auto lightCol light_diffuse_colour_array 8
+		param_named_auto lightPos light_position_array 8
+        param_named_auto lightAtt light_attenuation_array 8
+		param_named colormodifier float4 1 1 1 1
+    }
+}
+
 fragment_program invisible_ps hlsl
 {
 	source general.hlsl
@@ -304,6 +321,20 @@ material base_material_mouseover : base_material
 			fragment_program_ref ambient_ps
 			{
 				param_named colormodifier float4 1.2 4.0 1.2 1
+			}
+		}
+	}
+}
+
+material base_material_greyscale : base_material
+{
+	technique
+	{
+		pass
+		{
+			fragment_program_ref greyscale_ps
+			{
+				param_named colormodifier float4 1 1 1 1
 			}
 		}
 	}

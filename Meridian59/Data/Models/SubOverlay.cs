@@ -682,6 +682,7 @@ namespace Meridian59.Data.Models
             public V2 Origin;
             public V2 Size;
             public BgfBitmap Bgf;
+            public ObjectFlags Flags;
             public HotSpotType HotspotType;
             public SubOverlay SubOverlay;
 
@@ -690,6 +691,7 @@ namespace Meridian59.Data.Models
                 Origin = new V2(0.0f, 0.0f);
                 Size = new V2(0.0f, 0.0f);
                 Bgf = null;
+                Flags = null;
                 HotspotType = HotSpotType.HOTSPOT_NONE;
                 SubOverlay = null;
             }
