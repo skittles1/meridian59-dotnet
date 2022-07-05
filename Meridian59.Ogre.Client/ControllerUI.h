@@ -577,6 +577,7 @@ namespace Meridian59 { namespace Ogre
          static void HideNotification(CLRString^ Text);
          static void OnDataPropertyChanged(Object^ sender, PropertyChangedEventArgs^ e);
          static void OnParalyzePropertyChanged(Object^ sender, PropertyChangedEventArgs^ e);
+         static void OnAvatarBuffsListChanged(Object^ sender, ListChangedEventArgs^ e);
       };
 
       /// <summary>
