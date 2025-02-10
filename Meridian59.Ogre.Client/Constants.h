@@ -334,8 +334,13 @@
 #define UI_IMAGE_BRANDING_OPENMERIDIAN ""
 #define UI_IMAGE_LOCKBUTTON_UNLOCKED_NORMAL "TaharezLook/WindowLockButtonUnlockedNormal"
 #define UI_IMAGE_LOCKBUTTON_UNLOCKED_HOVER  "TaharezLook/WindowLockButtonUnlockedHover"
+#define UI_IMAGE_LOCKBUTTON_UNLOCKED_PUSHED "TaharezLook/WindowLockButtonUnlockedPushed"
 #define UI_IMAGE_LOCKBUTTON_LOCKED_NORMAL   "TaharezLook/WindowLockButtonLockedNormal"
 #define UI_IMAGE_LOCKBUTTON_LOCKED_HOVER    "TaharezLook/WindowLockButtonLockedHover"
+#define UI_IMAGE_LOCKBUTTON_LOCKED_PUSHED   "TaharezLook/WindowLockButtonLockedPushed"
+#define UI_IMAGE_RESETBUTTON_NORMAL         "TaharezLook/WindowResetButtonNormal"
+#define UI_IMAGE_RESETBUTTON_HOVER          "TaharezLook/WindowResetButtonHover"
+#define UI_IMAGE_RESETBUTTON_PUSHED         "TaharezLook/WindowResetButtonPushed"
 
 /* prefixe */
 #define UI_NAMEPREFIX_STATICICON    "CEGUI/StaticIcon/"
@@ -370,6 +375,7 @@
 #define UI_NAME_STATUSBAR_MTIMEVAL        "StatusBar.MTimeValue"
 #define UI_NAME_STATUSBAR_ROOMDESC        "StatusBar.RoomDescription"
 #define UI_NAME_STATUSBAR_ROOMVAL         "StatusBar.RoomValue"
+#define UI_NAME_STATUSBAR_RESET           "StatusBar.Reset"
 #define UI_NAME_STATUSBAR_LOCK            "StatusBar.Lock"
 #define UI_NAME_ONLINEPLAYERS_WINDOW      "OnlinePlayers"
 #define UI_NAME_ONLINEPLAYERS_LIST        "OnlinePlayers.List"
@@ -692,6 +698,7 @@
 #define UI_NAME_OPTIONS_TABINPUT_TABGENERAL  "Options.TabInput.TabGeneral"
 #define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS1       "Options.TabInput.TabActionButtons1"
 #define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS2       "Options.TabInput.TabActionButtons2"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3       "Options.TabInput.TabActionButtons3"
 #define UI_NAME_OPTIONS_TABINPUT_TABGENERAL_MOVEFORWARD  "Options.TabInput.TabGeneral.MoveForward"
 #define UI_NAME_OPTIONS_TABINPUT_TABGENERAL_MOVEBACKWARD "Options.TabInput.TabGeneral.MoveBackward"
 #define UI_NAME_OPTIONS_TABINPUT_TABGENERAL_MOVELEFT     "Options.TabInput.TabGeneral.MoveLeft"
@@ -760,6 +767,18 @@
 #define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS2_BUTTON46 "Options.TabInput.TabActionButtons2.Button46"
 #define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS2_BUTTON47 "Options.TabInput.TabActionButtons2.Button47"
 #define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS2_BUTTON48 "Options.TabInput.TabActionButtons2.Button48"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON49 "Options.TabInput.TabActionButtons3.Button49"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON50 "Options.TabInput.TabActionButtons3.Button50"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON51 "Options.TabInput.TabActionButtons3.Button51"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON52 "Options.TabInput.TabActionButtons3.Button52"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON53 "Options.TabInput.TabActionButtons3.Button53"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON54 "Options.TabInput.TabActionButtons3.Button54"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON55 "Options.TabInput.TabActionButtons3.Button55"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON56 "Options.TabInput.TabActionButtons3.Button56"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON57 "Options.TabInput.TabActionButtons3.Button57"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON58 "Options.TabInput.TabActionButtons3.Button58"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON59 "Options.TabInput.TabActionButtons3.Button59"
+#define UI_NAME_OPTIONS_TABINPUT_TABACTIONBUTTONS3_BUTTON60 "Options.TabInput.TabActionButtons3.Button60"
 #define UI_NAME_OPTIONS_TABENGINE_DISPLAY                "Options.TabEngine.Display"
 #define UI_NAME_OPTIONS_TABENGINE_RESOLUTION             "Options.TabEngine.Resolution"
 #define UI_NAME_OPTIONS_TABENGINE_WINDOWMODE             "Options.TabEngine.WindowMode"
@@ -889,7 +908,7 @@
 #define UI_INVENTORY_ROWS           40
 #define UI_INVENTORY_MIN_ROWS        6
 #define UI_ACTIONBUTTONS_COLS       12
-#define UI_ACTIONBUTTONS_ROWS        4
+#define UI_ACTIONBUTTONS_ROWS        5
 
 #define UI_AVATAR_CHILDINDEX_CONDITION_IMAGE    0
 #define UI_AVATAR_CHILDINDEX_CONDITION_BAR      1
@@ -945,6 +964,7 @@
 #define UI_NOTIFICATION_PARALYZED   "PARALYZED"
 #define UI_NOTIFICATION_SAVING      "SAVING"
 #define UI_NOTIFICATION_PRESSAKEY   "PRESS A KEY"
+#define UI_NOTIFICATION_PHASED      "PHASED"
 
 #define UI_TOOLTIPTEXT_HPBAR           "Your hitpoints. Fight monsters to get tougher."
 #define UI_TOOLTIPTEXT_MPBAR           "Your manapoints. Find mana nodes to get more powerful."

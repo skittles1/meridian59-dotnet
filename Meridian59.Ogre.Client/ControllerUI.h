@@ -71,6 +71,7 @@ namespace Meridian59 { namespace Ogre
       static void PasteFromClipboard(::CEGUI::Window* EditBox);
       static void CopyToClipboard(::CEGUI::Window* EditBox, bool Cut);
       static void SaveLayoutToConfig();
+      static void ResetLayout();
       static void OnDataPropertyChanged(Object^ sender, PropertyChangedEventArgs^ e);
       static void InjectMousePosition(float x, float y);
       static void InjectMouseWheelChange(float z);
@@ -273,6 +274,7 @@ namespace Meridian59 { namespace Ogre
          static ::CEGUI::Window* MTimeValue = nullptr;
          static ::CEGUI::Window* RoomDescription = nullptr;
          static ::CEGUI::Window* RoomValue = nullptr;
+         static ::CEGUI::PushButton* Reset = nullptr;
          static ::CEGUI::PushButton* Lock = nullptr;
 
          static void Initialize();
@@ -575,6 +577,7 @@ namespace Meridian59 { namespace Ogre
          static void HideNotification(CLRString^ Text);
          static void OnDataPropertyChanged(Object^ sender, PropertyChangedEventArgs^ e);
          static void OnParalyzePropertyChanged(Object^ sender, PropertyChangedEventArgs^ e);
+         static void OnAvatarBuffsListChanged(Object^ sender, ListChangedEventArgs^ e);
       };
 
       /// <summary>
@@ -1374,6 +1377,7 @@ namespace Meridian59 { namespace Ogre
          static ::CEGUI::Window* TabInputTabGeneral = nullptr;
          static ::CEGUI::Window* TabInputTabActionButtons1 = nullptr;
          static ::CEGUI::Window* TabInputTabActionButtons2 = nullptr;
+         static ::CEGUI::Window* TabInputTabActionButtons3 = nullptr;
 
          //
          static ::CEGUI::Combobox* Display = nullptr;
@@ -1491,6 +1495,18 @@ namespace Meridian59 { namespace Ogre
          static ::CEGUI::PushButton* LearnAction46 = nullptr;
          static ::CEGUI::PushButton* LearnAction47 = nullptr;
          static ::CEGUI::PushButton* LearnAction48 = nullptr;
+         static ::CEGUI::PushButton* LearnAction49 = nullptr;
+         static ::CEGUI::PushButton* LearnAction50 = nullptr;
+         static ::CEGUI::PushButton* LearnAction51 = nullptr;
+         static ::CEGUI::PushButton* LearnAction52 = nullptr;
+         static ::CEGUI::PushButton* LearnAction53 = nullptr;
+         static ::CEGUI::PushButton* LearnAction54 = nullptr;
+         static ::CEGUI::PushButton* LearnAction55 = nullptr;
+         static ::CEGUI::PushButton* LearnAction56 = nullptr;
+         static ::CEGUI::PushButton* LearnAction57 = nullptr;
+         static ::CEGUI::PushButton* LearnAction58 = nullptr;
+         static ::CEGUI::PushButton* LearnAction59 = nullptr;
+         static ::CEGUI::PushButton* LearnAction60 = nullptr;
 
          //
          static ::CEGUI::ItemListbox* ListAliases = nullptr;
@@ -1645,6 +1661,7 @@ namespace Meridian59 { namespace Ogre
          static bool OnMoodAngryClicked(const CEGUI::EventArgs& e);
          static bool OnSafetyClicked(const CEGUI::EventArgs& e);
          static bool OnPlayersClicked(const CEGUI::EventArgs& e);
+         static bool OnResetClicked(const CEGUI::EventArgs& e);
          static bool OnLockClicked(const CEGUI::EventArgs& e);
          static bool OnFPSClicked(const CEGUI::EventArgs& e);
       };
