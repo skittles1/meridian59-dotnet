@@ -117,6 +117,7 @@ namespace Meridian59 { namespace Ogre
          Reset->setTooltipText(GetLangTooltipStatusBar(LANGSTR_TOOLTIP_STATUSBAR::UIRESET_TOOLTIP));
       }
       
+      ControllerUI::StatusBar::Reset->setDisabled(LOCKED);
       ControllerUI::ApplyLock();
       // Set Descriptions for selected language
       /*FPSDescription->setText(GetLangDescriptionStatusBar(LANGSTR_DESCRIPTION_STATUSBAR::FPS_DESCRIPTION));
