@@ -22,6 +22,21 @@
 
 #include "RemoteNode.h"
 
+// Native tracking struct for unattached sounds
+namespace {
+   struct TrackedSound
+   {
+      ::irrklang::ISound* Sound;
+      bool IsSelfOrigin;
+      bool IsLooped;
+
+      TrackedSound(::irrklang::ISound* s, bool selfOrigin, bool looped)
+         : Sound(s), IsSelfOrigin(selfOrigin), IsLooped(looped) {}
+   };
+
+   static std::list<TrackedSound> sharedSounds;
+}
+
 namespace Meridian59 { namespace Ogre 
 {
    using namespace ::Ogre;
@@ -41,7 +56,6 @@ namespace Meridian59 { namespace Ogre
 
       static ::irrklang::ISoundEngine*       soundEngine;
       static ::irrklang::ISound*             backgroundMusic;
-      static std::list<::irrklang::ISound*>* sounds;
       static RemoteNode^                     listenerNode;
       static double                          tickWadingPlayed;
       static Common::V3                      lastListenerPosition;
@@ -72,16 +86,20 @@ namespace Meridian59 { namespace Ogre
       /// <summary>
       /// All sounds not attached to roomobject IDs (i.e. mapsounds)
       /// </summary>
-      static property std::list<::irrklang::ISound*>* Sounds 
-      { 
-         public: std::list<::irrklang::ISound*>* get() { return sounds; }
-         private: void set(std::list<::irrklang::ISound*>* value) { sounds = value; } 
+      static property std::list<TrackedSound>* SharedSounds
+      {
+         public: std::list<TrackedSound>* get() { return &sharedSounds; }
       }
 
       /// <summary>
       /// Initializes the sound engine
       /// </summary>
       static void Initialize();
+
+      /// <summary>
+      /// Updates the sound engine
+      /// </summary>
+      static void Update();
 
       /// <summary>
       /// Shutdown the sound engine
