@@ -1,8 +1,70 @@
 #include "stdafx.h"
 
+// percentage of base volume for self-origin sounds
+const float soundVolumeSelf = 0.7f;
+
+// percentage of base volume from behind
+const float soundVolumeRear = 0.4f;
+
+// degrees, angle where volume starts dropping
+const float soundReductionAngle = 30.0f;
+
+// percentage of base volume at right angle (to adjust for spike in volume)
+const float rightAngleAdjustment = 0.8f;
+
+// width of right angle cone across which adjustment occurs
+const float rightAngleCone = 180.0f;
+
 namespace Meridian59 { namespace Ogre 
 {
-   static ControllerSound::ControllerSound()
+   float GetAttenuatedVolume(
+      const vec3df& listenerPos,
+      const vec3df& listenerLook,
+      bool isSelfOrigin,
+      const vec3df& soundPos,
+      float baseVolume)
+   {
+      if (isSelfOrigin)
+         return baseVolume * soundVolumeSelf;
+   
+      vec3df toSound = soundPos - listenerPos;
+      ik_f64 len = toSound.getLength();
+   
+      if (len <= 0.001f)
+         return baseVolume;
+   
+      toSound.normalize();
+      float angleDeg = acosf(toSound.dotProduct(listenerLook)) * (180.0f / 3.14159265f);
+      if (angleDeg > 180.0f)
+         angleDeg = 360.0f - angleDeg;
+   
+      float finalVolume = baseVolume;
+   
+      // Rear attenuation
+      if (angleDeg > soundReductionAngle)
+      {
+         float range = 180.0f - soundReductionAngle;
+         float attenProgress = (angleDeg - soundReductionAngle) / range;
+         float volumeScale = 1.0f - (1.0f - soundVolumeRear) * attenProgress;
+         finalVolume *= volumeScale;
+      }
+   
+      // Side spike correction
+      float halfCone = rightAngleCone * 0.5f;
+      float lower = 90.0f - halfCone;
+      float upper = 90.0f + halfCone;
+   
+      if (angleDeg >= lower && angleDeg <= upper)
+      {
+         float sideFadeProgress = 1.0f - fabsf(angleDeg - 90.0f) / halfCone;
+         float spikeScale = 1.0f - (1.0f - rightAngleAdjustment) * sideFadeProgress * sideFadeProgress * sideFadeProgress;
+         finalVolume *= spikeScale;
+      }
+   
+      return finalVolume;
+   }
+
+   ControllerSound::ControllerSound()
    {
       soundEngine     = nullptr;
       listenerNode    = nullptr;
@@ -56,20 +118,34 @@ namespace Meridian59 { namespace Ogre
       IsInitialized = true;
    };
 
-   // called each game tick to clean up left-over finished sounds
+   // called each game tick
    void ControllerSound::Update()
    {
       if (!IsInitialized || !soundEngine)
          return;
+   
+      // Listener position and direction
+      if (!listenerNode || !listenerNode->SceneNode || !listenerNode->RoomObject)
+         return;
+   
+      ::Ogre::Vector3 pos = listenerNode->SceneNode->getPosition();
+      double angle = listenerNode->RoomObject->Angle;
+      V2 dir = MathUtil::GetDirectionForRadian(angle);
+   
+      vec3df listenerPos((ik_f32)pos.x, (ik_f32)pos.y, (ik_f32)-pos.z);
+      vec3df listenerDir((ik_f32)dir.X, 0.0f, (ik_f32)-dir.Y);
    
       for (auto it = sharedSounds.begin(); it != sharedSounds.end(); )
       {
          if (it->Sound->isFinished()) {
             it->Sound->drop();
             it = sharedSounds.erase(it);
-         } else {
-            ++it;
+            continue;
          }
+   
+         it->Sound->setVolume(GetAttenuatedVolume(listenerPos, listenerDir, it->IsSelfOrigin, it->Position, it->BaseVolume));
+   
+         ++it;
       }
    }
 
@@ -237,6 +313,32 @@ namespace Meridian59 { namespace Ogre
             (*it)->setVolume(OgreClient::Singleton->Config->SoundVolume / 10.0f);
       }
    };
+
+   void ControllerSound::UpdateSoundVolumes(std::list<ISound*>* sounds, const ::Ogre::Vector3& soundWorldPos)
+   {
+      if (!listenerNode || !listenerNode->SceneNode || !listenerNode->RoomObject || !sounds)
+         return;
+   
+      ::Ogre::Vector3 listenerOgrePos = listenerNode->SceneNode->getPosition();
+      double angle = listenerNode->RoomObject->Angle;
+      V2 dir = MathUtil::GetDirectionForRadian(angle);
+   
+      vec3df listenerPos((ik_f32)listenerOgrePos.x, (ik_f32)listenerOgrePos.y, (ik_f32)-listenerOgrePos.z);
+      vec3df listenerDir((ik_f32)dir.X, 0.0f, (ik_f32)-dir.Y);
+   
+      vec3df soundPos((ik_f32)soundWorldPos.x, (ik_f32)soundWorldPos.y, (ik_f32)-soundWorldPos.z);
+   
+      float baseVolume = OgreClient::Singleton->Config->SoundVolume / 10.0f;
+      float volume = GetAttenuatedVolume(listenerPos, listenerDir, false, soundPos, baseVolume);
+   
+      for (auto it = sounds->begin(); it != sounds->end(); ++it)
+      {
+         ISound* sound = *it;
+         if (sound)
+            sound->setVolume(volume);
+      }
+   }
+   
 
    void ControllerSound::HandleGameModeMessage(GameModeMessage^ Message)
    {
@@ -483,8 +585,26 @@ namespace Meridian59 { namespace Ogre
       // success
       if (sound)
       {
-         // set volume
-         sound->setVolume(OgreClient::Singleton->Config->SoundVolume / 10.0f);
+         // retrieve our base volume based on settings
+         float baseVolume = OgreClient::Singleton->Config->SoundVolume / 10.0f;
+
+         if (ControllerSound::listenerNode &&
+            ControllerSound::listenerNode->SceneNode &&
+            ControllerSound::listenerNode->RoomObject)
+         {
+            // get listener data
+            ::Ogre::Vector3 pos = ControllerSound::listenerNode->SceneNode->getPosition();
+            double angle = ControllerSound::listenerNode->RoomObject->Angle;
+            V2 dir = MathUtil::GetDirectionForRadian(angle);
+            
+            vec3df listenerPos((ik_f32)pos.x, (ik_f32)pos.y, (ik_f32)-pos.z);
+            vec3df listenerDir((ik_f32)dir.X, 0.0f, (ik_f32)-dir.Y);
+
+            // attenuate sound accordingly
+            baseVolume = GetAttenuatedVolume(listenerPos, listenerDir, isSelfOrigin, vec3df(x, y, z), baseVolume);
+         }
+
+         sound->setVolume(baseVolume);
 
          // save reference to sound for adjusting (i.e. position)
          if (attachNode)
@@ -492,7 +612,7 @@ namespace Meridian59 { namespace Ogre
 
          // unattached sounds are tracked in sharedSounds
          else
-            sharedSounds.push_back(TrackedSound(sound, isSelfOrigin, isLooped));       
+            sharedSounds.push_back(TrackedSound(sound, isSelfOrigin, isLooped, vec3df(x, y, z), baseVolume));       
 
          // start playback
          sound->setIsPaused(false);

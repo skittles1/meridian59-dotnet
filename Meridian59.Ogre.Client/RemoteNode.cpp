@@ -532,6 +532,9 @@ namespace Meridian59 { namespace Ogre
             sound = *it;
             sound->setPosition(irrpos);
          }
+   
+         // run sounds through attenuation
+         ControllerSound::UpdateSoundVolumes(sounds, pos);
       }
    };
 

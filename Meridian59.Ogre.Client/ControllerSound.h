@@ -29,9 +29,12 @@ namespace {
       ::irrklang::ISound* Sound;
       bool IsSelfOrigin;
       bool IsLooped;
+      ::irrklang::vec3df Position;
+      float BaseVolume;
+   
+      TrackedSound(::irrklang::ISound* s, bool selfOrigin, bool looped, ::irrklang::vec3df pos, float baseVol)
+         : Sound(s), IsSelfOrigin(selfOrigin), IsLooped(looped), Position(pos), BaseVolume(baseVol) {}
 
-      TrackedSound(::irrklang::ISound* s, bool selfOrigin, bool looped)
-         : Sound(s), IsSelfOrigin(selfOrigin), IsLooped(looped) {}
    };
 
    static std::list<TrackedSound> sharedSounds;
@@ -45,6 +48,13 @@ namespace Meridian59 { namespace Ogre
    using namespace Meridian59::Data;
    using namespace Meridian59::Protocol::Enums;
    using namespace Meridian59::Protocol::GameMessages;
+
+   float GetAttenuatedVolume(
+      const irrklang::vec3df& listenerPos,
+      const irrklang::vec3df& listenerDir,
+      bool isSelfOrigin,
+      const irrklang::vec3df& soundPos,
+      float baseVolume);
 
    /// <summary>
       /// Handles playback of sound resources
@@ -83,6 +93,11 @@ namespace Meridian59 { namespace Ogre
       static void HandlePlayMidiMessage(PlayMidiMessage^ Message);
 
    public:
+      /// <summary>
+      /// Utility function to adjust volumes of sounds attached to remote nodes.
+      /// </summary>
+      static void UpdateSoundVolumes(std::list<ISound*>* sounds, const ::Ogre::Vector3& soundWorldPos);
+
       /// <summary>
       /// All sounds not attached to roomobject IDs (i.e. mapsounds)
       /// </summary>
