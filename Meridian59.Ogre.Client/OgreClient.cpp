@@ -488,6 +488,7 @@ namespace Meridian59 { namespace Ogre
       ControllerInput::Tick(GameTick->Current, GameTick->Span);          
       ControllerUI::Tick(GameTick->Current, GameTick->Span);
       ControllerRoom::Tick(GameTick->Current, GameTick->Span);
+      ControllerSound::Update();
 
       /********************************************************************************************************/
       /*                                     RENDER FRAME                                                     */

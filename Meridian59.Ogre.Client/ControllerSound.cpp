@@ -1,12 +1,73 @@
 #include "stdafx.h"
 
+// percentage of base volume for self-origin sounds
+const float soundVolumeSelf = 0.7f;
+
+// percentage of base volume from behind
+const float soundVolumeRear = 0.4f;
+
+// degrees, angle where volume starts dropping
+const float soundReductionAngle = 30.0f;
+
+// percentage of base volume at right angle (to adjust for spike in volume)
+const float rightAngleAdjustment = 0.8f;
+
+// width of right angle cone across which adjustment occurs
+const float rightAngleCone = 180.0f;
+
 namespace Meridian59 { namespace Ogre 
 {
-   static ControllerSound::ControllerSound()
+   float GetAttenuatedVolume(
+      const vec3df& listenerPos,
+      const vec3df& listenerLook,
+      bool isSelfOrigin,
+      const vec3df& soundPos,
+      float baseVolume)
+   {
+      if (isSelfOrigin)
+         return baseVolume * soundVolumeSelf;
+   
+      vec3df toSound = soundPos - listenerPos;
+      ik_f64 len = toSound.getLength();
+   
+      if (len <= 0.001f)
+         return baseVolume;
+   
+      toSound.normalize();
+      float angleDeg = acosf(toSound.dotProduct(listenerLook)) * (180.0f / 3.14159265f);
+      if (angleDeg > 180.0f)
+         angleDeg = 360.0f - angleDeg;
+   
+      float finalVolume = baseVolume;
+   
+      // Rear attenuation
+      if (angleDeg > soundReductionAngle)
+      {
+         float range = 180.0f - soundReductionAngle;
+         float attenProgress = (angleDeg - soundReductionAngle) / range;
+         float volumeScale = 1.0f - (1.0f - soundVolumeRear) * attenProgress;
+         finalVolume *= volumeScale;
+      }
+   
+      // Side spike correction
+      float halfCone = rightAngleCone * 0.5f;
+      float lower = 90.0f - halfCone;
+      float upper = 90.0f + halfCone;
+   
+      if (angleDeg >= lower && angleDeg <= upper)
+      {
+         float sideFadeProgress = 1.0f - fabsf(angleDeg - 90.0f) / halfCone;
+         float spikeScale = 1.0f - (1.0f - rightAngleAdjustment) * sideFadeProgress * sideFadeProgress * sideFadeProgress;
+         finalVolume *= spikeScale;
+      }
+   
+      return finalVolume;
+   }
+
+   ControllerSound::ControllerSound()
    {
       soundEngine     = nullptr;
       listenerNode    = nullptr;
-      sounds          = nullptr;
       backgroundMusic = nullptr;
       tickWadingPlayed = 0;
       lastListenerPosition = V3(0.0f, 0.0f, 0.0f);
@@ -16,9 +77,6 @@ namespace Meridian59 { namespace Ogre
    {
       if (IsInitialized)
          return;
-
-      // init sound list
-      sounds = new std::list<ISound*>();
 
       ISoundDeviceList* deviceList = ::irrklang::createSoundDeviceList();
       ik_s32 devicecount = deviceList->getDeviceCount();
@@ -41,10 +99,13 @@ namespace Meridian59 { namespace Ogre
          // this is not null, it's null if no sound device in device manager
          if (soundEngine)
          {
-            // sound engine properties
-            soundEngine->setDefault3DSoundMaxDistance(2000.0f);
-            soundEngine->setDefault3DSoundMinDistance(0.0f);
-            soundEngine->setRolloffFactor(0.002f);
+            // sound engine properties, units are fine units with a melee range of 128 (= 2 grid units)
+            // creates a stable 100% bubble of volume immediately around the sound source.
+            soundEngine->setDefault3DSoundMinDistance(64.0f);
+            // Sounds won't fall off past a grid distance of 50
+            soundEngine->setDefault3DSoundMaxDistance(3200.0f);
+            // Natural, but somewhat aggressive falloff to make distance from the source more meaningful
+            soundEngine->setRolloffFactor(0.5f);
          }
       }
       else
@@ -57,17 +118,48 @@ namespace Meridian59 { namespace Ogre
       IsInitialized = true;
    };
 
+   // called each game tick
+   void ControllerSound::Update()
+   {
+      if (!IsInitialized || !soundEngine)
+         return;
+   
+      // Listener position and direction
+      if (!listenerNode || !listenerNode->SceneNode || !listenerNode->RoomObject)
+         return;
+   
+      ::Ogre::Vector3 pos = listenerNode->SceneNode->getPosition();
+      double angle = listenerNode->RoomObject->Angle;
+      V2 dir = MathUtil::GetDirectionForRadian(angle);
+   
+      vec3df listenerPos((ik_f32)pos.x, (ik_f32)pos.y, (ik_f32)-pos.z);
+      vec3df listenerDir((ik_f32)dir.X, 0.0f, (ik_f32)-dir.Y);
+   
+      for (auto it = sharedSounds.begin(); it != sharedSounds.end(); )
+      {
+         if (it->Sound->isFinished()) {
+            it->Sound->drop();
+            it = sharedSounds.erase(it);
+            continue;
+         }
+   
+         it->Sound->setVolume(GetAttenuatedVolume(listenerPos, listenerDir, it->IsSelfOrigin, it->Position, it->BaseVolume));
+   
+         ++it;
+      }
+   }
+
    void ControllerSound::Destroy()
    {
       if (!IsInitialized)
          return;
 
-      if (sounds)
-      {
-         sounds->clear();
-         delete sounds;
-      }
+      // cleanup and release of resources in our list of shared sounds
+      for (auto it = sharedSounds.begin(); it != sharedSounds.end(); ++it)
+         it->Sound->drop();
 
+      sharedSounds.clear();
+   
       if (soundEngine)
       {
          soundEngine->stopAllSounds();
@@ -82,7 +174,6 @@ namespace Meridian59 { namespace Ogre
 
       soundEngine     = nullptr;
       listenerNode    = nullptr;
-      sounds          = nullptr;
       backgroundMusic = nullptr;
 
       // mark not initialized
@@ -205,11 +296,8 @@ namespace Meridian59 { namespace Ogre
 
    void ControllerSound::AdjustSoundVolume()
    {
-      if (sounds)
-      {
-         for (std::list<ISound*>::iterator it = sounds->begin(); it != sounds->end(); it++)
-            (*it)->setVolume(OgreClient::Singleton->Config->SoundVolume / 10.0f);
-      }
+      for (auto it = sharedSounds.begin(); it != sharedSounds.end(); it++)
+         it->Sound->setVolume(OgreClient::Singleton->Config->SoundVolume / 10.0f);
 
       for each(RoomObject^ obj in OgreClient::Singleton->Data->RoomObjects)
       {
@@ -225,6 +313,32 @@ namespace Meridian59 { namespace Ogre
             (*it)->setVolume(OgreClient::Singleton->Config->SoundVolume / 10.0f);
       }
    };
+
+   void ControllerSound::UpdateSoundVolumes(std::list<ISound*>* sounds, const ::Ogre::Vector3& soundWorldPos)
+   {
+      if (!listenerNode || !listenerNode->SceneNode || !listenerNode->RoomObject || !sounds)
+         return;
+   
+      ::Ogre::Vector3 listenerOgrePos = listenerNode->SceneNode->getPosition();
+      double angle = listenerNode->RoomObject->Angle;
+      V2 dir = MathUtil::GetDirectionForRadian(angle);
+   
+      vec3df listenerPos((ik_f32)listenerOgrePos.x, (ik_f32)listenerOgrePos.y, (ik_f32)-listenerOgrePos.z);
+      vec3df listenerDir((ik_f32)dir.X, 0.0f, (ik_f32)-dir.Y);
+   
+      vec3df soundPos((ik_f32)soundWorldPos.x, (ik_f32)soundWorldPos.y, (ik_f32)-soundWorldPos.z);
+   
+      float baseVolume = OgreClient::Singleton->Config->SoundVolume / 10.0f;
+      float volume = GetAttenuatedVolume(listenerPos, listenerDir, false, soundPos, baseVolume);
+   
+      for (auto it = sounds->begin(); it != sounds->end(); ++it)
+      {
+         ISound* sound = *it;
+         if (sound)
+            sound->setVolume(volume);
+      }
+   }
+   
 
    void ControllerSound::HandleGameModeMessage(GameModeMessage^ Message)
    {
@@ -302,35 +416,14 @@ namespace Meridian59 { namespace Ogre
          }
       }
 
-      // Check our avatar's sound list
-      if (OgreClient::Singleton->Data->AvatarObject &&
-          OgreClient::Singleton->Data->AvatarObject->UserData)
+      // Check sharedSounds list
+      for (auto it = sharedSounds.begin(); it != sharedSounds.end();++it)
       {
-         RemoteNode^ node = (RemoteNode^)OgreClient::Singleton->Data->AvatarObject->UserData;
-
-         if (node && node->Sounds)
+         if (it->Sound->getSoundSource() == soundsrc)
          {
-            for (std::list<ISound*>::iterator it = node->Sounds->begin(); it != node->Sounds->end(); ++it)
-            {
-               if ((*it)->getSoundSource() == soundsrc)
-               {
-                  (*it)->stop();
-                  (*it)->drop();
-                  it = node->Sounds->erase(it);
-                  return;
-               }
-            }
-         }
-      }
-
-      // Check sounds list
-      for (std::list<ISound*>::iterator it = sounds->begin(); it != sounds->end();++it)
-      {
-         if ((*it)->getSoundSource() == soundsrc)
-         {
-            (*it)->stop();
-            (*it)->drop();
-            it = sounds->erase(it);
+            it->Sound->stop();
+            it->Sound->drop();
+            it = sharedSounds.erase(it);
             return;
          }
       }
@@ -340,21 +433,23 @@ namespace Meridian59 { namespace Ogre
 
    void ControllerSound::HandlePlayerMessage(PlayerMessage^ Message)
    {
-      if (!IsInitialized || !soundEngine || !sounds)
+      if (!IsInitialized || !soundEngine)
          return;
 
-      // stop playback of all sounds
-      //soundEngine->stopAllSounds();
-
-      for(std::list<ISound*>::iterator it=sounds->begin(); it !=sounds->end(); it++)
+      for (auto it = sharedSounds.begin(); it != sharedSounds.end(); )
       {
-         (*it)->stop();
-         (*it)->drop();
-      }
+         // Preserve one shot sounds with self origin (e.g. door opening, level up sound etc.)
+         if (!it->IsLooped && it->IsSelfOrigin)
+         {
+            ++it;
+            continue;
+         }
 
-      // clear references
-      sounds->clear();
-   };
+         it->Sound->stop();
+         it->Sound->drop();
+         it = sharedSounds.erase(it);
+      }
+   }
 
    void ControllerSound::HandlePlayMusicMessage(PlayMusicMessage^ Message)
    {
@@ -376,13 +471,36 @@ namespace Meridian59 { namespace Ogre
       if (!IsInitialized || !soundEngine || !Info || !Info->ResourceName || !Info->Resource)
          return;
 
-      if (Info->PlayFlags->IsLoop && OgreClient::Singleton->Config->DisableLoopSounds)
+      bool isLooped = Info->PlayFlags->IsLoop;
+
+      if (isLooped && OgreClient::Singleton->Config->DisableLoopSounds)
          return;
+
+      // Clean up finished sounds from the shared sound list
+      for (auto it = sharedSounds.begin(); it != sharedSounds.end(); )
+      {
+         if (it->Sound->isFinished()) {
+            it->Sound->drop();
+            it = sharedSounds.erase(it);
+         } else {
+            ++it;
+         }
+      }
+
+      const int MAX_ACTIVE_SOUNDS = 32;
+      if ((int)sharedSounds.size() >= MAX_ACTIVE_SOUNDS) {
+         TrackedSound& oldest = sharedSounds.front();
+         oldest.Sound->stop();
+         oldest.Sound->drop();
+         sharedSounds.pop_front();
+      }
 
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
       // if source is a object, we save it here
       RemoteNode^ attachNode = nullptr;
+
+      bool isSelfOrigin = false;
 
       // initial playback position
       float x = 0;
@@ -431,19 +549,8 @@ namespace Meridian59 { namespace Ogre
       // source is own avatar
       else
       {
-         if (OgreClient::Singleton->Data->AvatarObject &&
-            OgreClient::Singleton->Data->AvatarObject->UserData)
-         {
-            attachNode = (RemoteNode^)OgreClient::Singleton->Data->AvatarObject->UserData;
-
-            if (attachNode && attachNode->SceneNode)
-            {
-               ::Ogre::Vector3 pos = attachNode->SceneNode->getPosition();
-               x = (float)pos.x;
-               y = (float)pos.y;
-               z = (float)-pos.z;
-            }
-         }
+         // mark this as a self-origin sound
+         isSelfOrigin = true;
       }
 
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -451,29 +558,61 @@ namespace Meridian59 { namespace Ogre
       // native strings
       const ::Ogre::String& o_StrFull = StringConvert::CLRToOgre(Info->Resource);
 
-      // try start 3D playback
-      ISound* sound = soundEngine->play3D(
-         o_StrFull.c_str(),
-         vec3df(x, y, z), 
-         Info->PlayFlags->IsLoop, 
-         true, 
-         true, 
-         ::irrklang::E_STREAM_MODE::ESM_AUTO_DETECT, 
-         false);
+      ISound* sound = nullptr;
+
+      if (isSelfOrigin)
+      {
+         // play2D: full volume, not spatialized
+         sound = soundEngine->play2D(
+            o_StrFull.c_str(),
+            isLooped,
+            true,  // startPaused
+            true); // track = true so we can drop it later
+      }
+      else
+      {
+         // try start 3D playback
+         sound = soundEngine->play3D(
+            o_StrFull.c_str(),
+            vec3df(x, y, z),
+            isLooped,
+            true,
+            true,
+            ::irrklang::E_STREAM_MODE::ESM_AUTO_DETECT,
+            false);
+      }
 
       // success
       if (sound)
       {
-         // set volume
-         sound->setVolume(OgreClient::Singleton->Config->SoundVolume / 10.0f);
+         // retrieve our base volume based on settings
+         float baseVolume = OgreClient::Singleton->Config->SoundVolume / 10.0f;
+
+         if (ControllerSound::listenerNode &&
+            ControllerSound::listenerNode->SceneNode &&
+            ControllerSound::listenerNode->RoomObject)
+         {
+            // get listener data
+            ::Ogre::Vector3 pos = ControllerSound::listenerNode->SceneNode->getPosition();
+            double angle = ControllerSound::listenerNode->RoomObject->Angle;
+            V2 dir = MathUtil::GetDirectionForRadian(angle);
+            
+            vec3df listenerPos((ik_f32)pos.x, (ik_f32)pos.y, (ik_f32)-pos.z);
+            vec3df listenerDir((ik_f32)dir.X, 0.0f, (ik_f32)-dir.Y);
+
+            // attenuate sound accordingly
+            baseVolume = GetAttenuatedVolume(listenerPos, listenerDir, isSelfOrigin, vec3df(x, y, z), baseVolume);
+         }
+
+         sound->setVolume(baseVolume);
 
          // save reference to sound for adjusting (i.e. position)
          if (attachNode)
             attachNode->AddSound(sound);
 
-         // if no soundowner save it ourself
+         // unattached sounds are tracked in sharedSounds
          else
-            sounds->push_back(sound);
+            sharedSounds.push_back(TrackedSound(sound, isSelfOrigin, isLooped, vec3df(x, y, z), baseVolume));       
 
          // start playback
          sound->setIsPaused(false);

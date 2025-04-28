@@ -22,6 +22,24 @@
 
 #include "RemoteNode.h"
 
+// Native tracking struct for unattached sounds
+namespace {
+   struct TrackedSound
+   {
+      ::irrklang::ISound* Sound;
+      bool IsSelfOrigin;
+      bool IsLooped;
+      ::irrklang::vec3df Position;
+      float BaseVolume;
+   
+      TrackedSound(::irrklang::ISound* s, bool selfOrigin, bool looped, ::irrklang::vec3df pos, float baseVol)
+         : Sound(s), IsSelfOrigin(selfOrigin), IsLooped(looped), Position(pos), BaseVolume(baseVol) {}
+
+   };
+
+   static std::list<TrackedSound> sharedSounds;
+}
+
 namespace Meridian59 { namespace Ogre 
 {
    using namespace ::Ogre;
@@ -30,6 +48,13 @@ namespace Meridian59 { namespace Ogre
    using namespace Meridian59::Data;
    using namespace Meridian59::Protocol::Enums;
    using namespace Meridian59::Protocol::GameMessages;
+
+   float GetAttenuatedVolume(
+      const irrklang::vec3df& listenerPos,
+      const irrklang::vec3df& listenerDir,
+      bool isSelfOrigin,
+      const irrklang::vec3df& soundPos,
+      float baseVolume);
 
    /// <summary>
       /// Handles playback of sound resources
@@ -41,7 +66,6 @@ namespace Meridian59 { namespace Ogre
 
       static ::irrklang::ISoundEngine*       soundEngine;
       static ::irrklang::ISound*             backgroundMusic;
-      static std::list<::irrklang::ISound*>* sounds;
       static RemoteNode^                     listenerNode;
       static double                          tickWadingPlayed;
       static Common::V3                      lastListenerPosition;
@@ -70,18 +94,27 @@ namespace Meridian59 { namespace Ogre
 
    public:
       /// <summary>
+      /// Utility function to adjust volumes of sounds attached to remote nodes.
+      /// </summary>
+      static void UpdateSoundVolumes(std::list<ISound*>* sounds, const ::Ogre::Vector3& soundWorldPos);
+
+      /// <summary>
       /// All sounds not attached to roomobject IDs (i.e. mapsounds)
       /// </summary>
-      static property std::list<::irrklang::ISound*>* Sounds 
-      { 
-         public: std::list<::irrklang::ISound*>* get() { return sounds; }
-         private: void set(std::list<::irrklang::ISound*>* value) { sounds = value; } 
+      static property std::list<TrackedSound>* SharedSounds
+      {
+         public: std::list<TrackedSound>* get() { return &sharedSounds; }
       }
 
       /// <summary>
       /// Initializes the sound engine
       /// </summary>
       static void Initialize();
+
+      /// <summary>
+      /// Updates the sound engine
+      /// </summary>
+      static void Update();
 
       /// <summary>
       /// Shutdown the sound engine
